@@ -1,5 +1,9 @@
 from django.shortcuts import render
 
-# Create your views here.
 def navigate_map(request):
-    return render(request,"navigator_helper/map.html")
+    schedule = [
+        {"name": "Kathmandu Durbar Square", "latitude": 27.7045, "longitude": 85.3076},
+        {"name": "Swayambhunath Stupa", "latitude": 27.7149, "longitude": 85.2903},
+        {"name": "Pashupatinath Temple", "latitude": 27.7104, "longitude": 85.3488},
+    ]
+    return render(request, "navigator_helper/map.html", {"schedule": schedule})
