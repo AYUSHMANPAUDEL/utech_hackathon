@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path , include
-from navigator_helper import views
+from map_roadmap import views
 urlpatterns = [
 
 ]
