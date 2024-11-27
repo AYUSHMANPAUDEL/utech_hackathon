@@ -1,5 +1,5 @@
 from django.shortcuts import render
 
 # Create your views here.
-def explore(request):
+def dashboard(request):
     return render (request, "map_roadmap/explore.html")

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Tourism Navigation</title>
+    <title>Interactive Navigation</title>
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
@@ -11,18 +11,32 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet-routing-machine/dist/leaflet-routing-machine.min.js"></script>
     <style>
-        /* Fullscreen Map */
         #map {
             height: 90vh;
             width: 100%;
-            border: none;
             border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
         }
-
-        /* Popup Styling */
-        #popup {
+        #test-button {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            z-index: 1000;
+        }
+        #test-button:hover {
+            background-color: #0056b3;
+        }
+        #popup, #overlay {
             display: none;
+        }
+        #popup {
             position: fixed;
             top: 50%;
             left: 50%;
@@ -30,10 +44,10 @@
             background: white;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
             z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            opacity: 0.9; /* Less intrusive opacity */
         }
-
         #popup button {
             margin: 5px;
             padding: 10px 15px;
@@ -41,20 +55,9 @@
             border-radius: 5px;
             cursor: pointer;
         }
-
-        #popup button#yes {
-            background-color: #28a745;
-            color: white;
-        }
-
-        #popup button#no {
-            background-color: #dc3545;
-            color: white;
-        }
-
-        /* Dim Background Overlay */
+        #yes { background-color: #28a745; color: white; }
+        #no { background-color: #dc3545; color: white; }
         #overlay {
-            display: none;
             position: fixed;
             top: 0;
             left: 0;
@@ -67,35 +70,37 @@
 </head>
 <body>
     <div id="map"></div>
+    <button id="test-button">Simulate Arrival</button>
     <div id="overlay"></div>
     <div id="popup">
         <p id="popup-text"></p>
         <button id="yes">Yes</button>
         <button id="no">No</button>
     </div>
-    <script>
-        const schedule = {{ schedule|safe }}; // Schedule with destinations
-        console.log(schedule)
-        let currentLat, currentLng;
-        let currentIndex = 0;
-        let routingControl = null;
-        let userMarker = null;
 
-        // Custom user icon
+    <script>
+        const schedule = {{ schedule|safe }};  // Your schedule data
+        let currentIndex = 0;
+        let userLocation = null;
+        let routingControl = null;
+        const NEARBY_RADIUS = 50; // Distance in meters to trigger next destination popup
+
+        // Custom icon for user's location
         const userIcon = L.icon({
-            iconUrl: "https://cdn-icons-png.flaticon.com/512/61/61205.png", // GPS/marker icon
-            iconSize: [35, 35],
-            iconAnchor: [17, 35], // Bottom center
-            popupAnchor: [0, -30],
+            iconUrl: "https://cdn-icons-png.flaticon.com/512/1946/1946429.png", // Profile-like or Uber-style icon
+            iconSize: [30, 30], // Size of the icon
+            iconAnchor: [15, 15], // Anchor point
         });
 
-        // Initialize map with custom tile layer
-        const map = L.map("map", { zoomControl: true }).setView([27.7045, 85.3076], 16); // Pathao-like zoom level
+        // Initialize the map
+        const map = L.map("map").setView([27.7, 85.3], 12);
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
             attribution: "© OpenStreetMap contributors",
         }).addTo(map);
 
-        // Function to show modal popup
+        const userMarker = L.marker([0, 0], { icon: userIcon }).addTo(map);
+
+        // Show popup
         const showPopup = (text, yesCallback, noCallback) => {
             const popup = document.getElementById("popup");
             const overlay = document.getElementById("overlay");
@@ -104,131 +109,132 @@
             popup.style.display = "block";
             overlay.style.display = "block";
 
+            // Disable map interaction when popup is shown
+            map.dragging.disable();
+            map.touchZoom.disable();
+            map.doubleClickZoom.disable();
+            map.scrollWheelZoom.disable();
+
             document.getElementById("yes").onclick = () => {
                 popup.style.display = "none";
                 overlay.style.display = "none";
+                map.dragging.enable();
+                map.touchZoom.enable();
+                map.doubleClickZoom.enable();
+                map.scrollWheelZoom.enable();
                 yesCallback();
             };
+
             document.getElementById("no").onclick = () => {
                 popup.style.display = "none";
                 overlay.style.display = "none";
+                map.dragging.enable();
+                map.touchZoom.enable();
+                map.doubleClickZoom.enable();
+                map.scrollWheelZoom.enable();
                 noCallback();
             };
         };
 
         // Get user's current location
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                currentLat = position.coords.latitude;
-                currentLng = position.coords.longitude;
+        const locateUser = (callback) => {
+            if (navigator.geolocation) {
+                navigator.geolocation.watchPosition(
+                    (position) => {
+                        userLocation = L.latLng(
+                            position.coords.latitude,
+                            position.coords.longitude
+                        );
 
-                // Show user's current location with a custom marker
-                userMarker = L.marker([currentLat, currentLng], {
-                    icon: userIcon,
-                    draggable: true, // Allow dragging for testing
-                }).addTo(map);
-                userMarker.bindPopup("<b>You are here!</b>").openPopup();
+                        // Update map view and marker
+                        if (!map.hasLayer(userMarker)) {
+                            map.setView(userLocation, 15);
+                        }
+                        userMarker.setLatLng(userLocation).addTo(map);
 
-                map.setView([currentLat, currentLng], 16);
-                startTrip();
-            },
-            (error) => {
-                alert("Unable to retrieve your location. Using default location.");
-                currentLat = 27.7045;
-                currentLng = 85.3076;
-                startTrip();
-            }
-        );
+                        // Trigger first popup if it's not already handled
+                        if (currentIndex === 0 && userLocation) {
+                            proceedToNextDestination();
+                        }
 
-        let isFirstSchedule = true;
-
-        const startTrip = () => {
-            const { latitude, longitude, name } = schedule[currentIndex];
-            const distance = calculateDistance(currentLat, currentLng, latitude, longitude);
-        
-            if (distance < 0.1) { // 100 meters tolerance
-                if (isFirstSchedule) {
-                    navigateTo([currentLat, currentLng], [latitude, longitude]); // Skip the popup for the first destination
-                    isFirstSchedule = false;
-                } else {
-                    showPopup(`Do you want to go to ${name}?`, () => {
-                        navigateTo([currentLat, currentLng], [latitude, longitude]);
-                    }, () => {
-                        alert("Trip canceled.");
-                    });
-                }
+                        // Check proximity to destination
+                        if (currentIndex < schedule.length) {
+                            const destination = L.latLng(
+                                schedule[currentIndex].latitude,
+                                schedule[currentIndex].longitude
+                            );
+                            if (userLocation.distanceTo(destination) <= NEARBY_RADIUS) {
+                                proceedToNextDestination();
+                            }
+                        }
+                    },
+                    () => {
+                        alert("Unable to access your location.");
+                        callback();
+                    }
+                );
             } else {
-                setTimeout(() => {
-                    startTrip(); // Keep checking until user reaches the location
-                }, 3000); // Check every 3 seconds
+                alert("Geolocation is not supported by your browser.");
+                callback();
             }
         };
-        
-        // Calculate distance between two coordinates (in km)
-        const calculateDistance = (lat1, lng1, lat2, lng2) => {
-            const R = 6371; // Earth radius in km
-            const dLat = (lat2 - lat1) * (Math.PI / 180);
-            const dLng = (lng2 - lng1) * (Math.PI / 180);
-            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                      Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
-                      Math.sin(dLng / 2) * Math.sin(dLng / 2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            const distance = R * c; // Distance in km
-            return distance;
+
+        // Proceed to next destination
+        const proceedToNextDestination = () => {
+            if (currentIndex >= schedule.length) {
+                alert("Trip complete!");
+                return;
+            }
+
+            const { name, latitude, longitude } = schedule[currentIndex];
+            showPopup(
+                `Do you want to navigate to ${name}?`,
+                () => {
+                    navigateToDestination(latitude, longitude);
+                },
+                () => {
+                    alert("Navigation canceled.");
+                }
+            );
         };
 
-        // Navigate to destination
-        const navigateTo = (start, end) => {
+        // Navigate to the destination
+        const navigateToDestination = (lat, lng) => {
+            if (!userLocation) {
+                alert("User location is not available.");
+                return;
+            }
+
             if (routingControl) {
                 map.removeControl(routingControl);
             }
+
             routingControl = L.Routing.control({
-                waypoints: [L.latLng(start[0], start[1]), L.latLng(end[0], end[1])],
+                waypoints: [userLocation, L.latLng(lat, lng)],
                 routeWhileDragging: true,
             }).addTo(map);
 
-            // Update user location
-            currentLat = end[0];
-            currentLng = end[1];
             currentIndex++;
+        };
 
+        // Simulate user arrival
+        const simulateArrival = () => {
             if (currentIndex < schedule.length) {
-                setTimeout(() => {
-                    startTrip();
-                }, 3000); // Simulate 3 seconds delay
-            } else {
-                alert("Trip complete!");
+                const destination = schedule[currentIndex];
+                userLocation = L.latLng(destination.latitude, destination.longitude);
+                userMarker.setLatLng(userLocation).addTo(map);
+                map.setView(userLocation, 15);
+                proceedToNextDestination();
             }
         };
 
-        // Track user's location continuously
-        navigator.geolocation.watchPosition(
-            (position) => {
-                currentLat = position.coords.latitude;
-                currentLng = position.coords.longitude;
+        // Attach click event to test button
+        document.getElementById("test-button").addEventListener("click", simulateArrival);
 
-                // Update the user marker position on the map
-                if (!userMarker) {
-                    // Create marker if it doesn't exist
-                    userMarker = L.marker([currentLat, currentLng], {
-                        icon: userIcon,
-                    }).addTo(map);
-                } else {
-                    // Update marker position
-                    userMarker.setLatLng([currentLat, currentLng]);
-                }
-
-                // Center map on user's location
-                map.setView([currentLat, currentLng], 16);
-            },
-            (error) => {
-                console.error("Error watching position:", error);
-            },
-            {
-                enableHighAccuracy: true, // Use GPS for better accuracy
-                maximumAge: 0,
-            }
-        );
+        // Start the navigation
+        locateUser(() => {
+            proceedToNextDestination();
+        });
     </script>
 </body>
 </html>
