@@ -6,7 +6,7 @@ def dashboard(request):
 
 
 def plan_trip(current_location,destination, days, member):
-    OPENAI_API_KEY = "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"  # Replace with your actual OpenAI API key
+    OPENAI_API_KEY = "..."  # Replace with your actual OpenAI API key
 
     openai.api_key = OPENAI_API_KEY
 
