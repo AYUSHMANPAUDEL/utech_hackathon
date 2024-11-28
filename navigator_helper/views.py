@@ -1,9 +1,11 @@
-from django.shortcuts import render
+from django.shortcuts import render , get_object_or_404
+from map_roadmap.models import Trips
 
-def navigate_map(request):
-    schedule = [
-        {"name": "Kathmandu Durbar Square", "latitude": 27.7045, "longitude": 85.3076},
-        {"name": "Swayambhunath Stupa", "latitude": 27.7149, "longitude": 85.2903},
-        {"name": "Pashupatinath Temple", "latitude": 27.7104, "longitude": 85.3488},
-    ]
+
+def navigate_map(request,id):
+    trip = get_object_or_404(Trips, id=id)
+    schedule = trip.trip_json
+    if not schedule:
+        # Handle the case where the schedule is empty or invalid
+        return render(request, "navigator_helper/map.html", {"error": "No schedule data found for this trip."})
     return render(request, "navigator_helper/map.html", {"schedule": schedule})
