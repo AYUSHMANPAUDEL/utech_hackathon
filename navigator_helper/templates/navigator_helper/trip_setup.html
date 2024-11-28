@@ -34,30 +34,76 @@
             overflow-y: auto;
         }
 
-        .error-message {
-            background-color: #f44336;
-            color: white;
+        .day-container {
+            margin-bottom: 2rem;
+        }
+
+        .day-header {
+            background: #464866;
             padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            font-size: 1.25rem;
+            font-weight: bold;
             text-align: center;
-            border-radius: 5px;
             margin-bottom: 1rem;
         }
 
-        .json-container {
+        .trip-card {
             background: #23233a;
-            padding: 1.5rem;
+            padding: 1rem;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            color: #f0f0f0;
-            white-space: pre-wrap;
-            word-wrap: break-word;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .json-container code {
-            color: #76c7c0;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 1rem;
-            line-height: 1.6;
+        .trip-details {
+            max-width: 60%;
+        }
+
+        .trip-details p {
+            margin: 0.25rem 0;
+            color: #f0f0f0;
+        }
+
+        .trip-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-button {
+            background: #76c7c0;
+            color: #23233a;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: background 0.3s ease-in-out;
+        }
+
+        .action-button:hover {
+            background: #5aa89d;
+        }
+
+        .edit-button {
+            background: #ffcc00;
+        }
+
+        .edit-button:hover {
+            background: #e6b800;
+        }
+
+        .delete-button {
+            background: #f44336;
+        }
+
+        .delete-button:hover {
+            background: #d32f2f;
         }
 
         footer {
@@ -84,15 +130,33 @@
     </header>
 
     <main>
-        {% if trips %}
-        <div class="json-container">
-            <h2>Trip Details (JSON Format)</h2>
-            <p>{{ trips.trip_json}}</p>
-        </div>
+        {% if trip %}
+            {% for day, events in trip.trip_json.items %}
+                <div class="day-container">
+                    <div class="day-header">
+                        {{ day | title }}
+                    </div>
+                    {% for event in events %}
+                        <div class="trip-card">
+                            <div class="trip-details">
+                                <p><strong>Location:</strong> {{ event.location }}</p>
+                                <p><strong>Latitude:</strong> {{ event.latitude }}</p>
+                                <p><strong>Longitude:</strong> {{ event.longitude }}</p>
+                                <p><strong>Status:</strong> {{ event.status|yesno:"Pending,Completed" }}</p>
+                            </div>
+                            <div class="trip-actions">
+                                <button class="action-button go-now-button">Go Now</button>
+                                <button class="action-button edit-button">Edit</button>
+                                <button class="action-button delete-button">Delete</button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
         {% else %}
-        <div class="error-message">
-            <p>Error: No trip data available.</p>
-        </div>
+            <div class="error-message">
+                <p>Error: No trip data available.</p>
+            </div>
         {% endif %}
     </main>
 
