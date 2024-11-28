@@ -1,8 +1,12 @@
-from django.shortcuts import render
+from django.shortcuts import render , get_object_or_404
 import openai
+from map_roadmap.models import Trips
 # Create your views here.
 def dashboard(request):
-    return render (request, "map_roadmap/dashboard.html")
+    trips = Trips.objects.filter(username=request.user)
+    if trips.exists():
+        return render(request,"map_roadmap/dashboard.html",{"trips":trips})
+    return render(request,"map_roadmap/dashboard.html",{"Error":"No Trips"})
 
 
 def plan_trip(current_location,destination, days, member):

@@ -46,7 +46,7 @@
             border-radius: 8px;
             z-index: 1000;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-            opacity: 0.9; /* Less intrusive opacity */
+            opacity: 0.9;
         }
         #popup button {
             margin: 5px;
@@ -180,61 +180,67 @@
         };
 
         // Proceed to next destination
-        const proceedToNextDestination = () => {
-            if (currentIndex >= schedule.length) {
-                alert("Trip complete!");
-                return;
+       // Proceed to next destination
+const proceedToNextDestination = () => {
+    if (currentIndex >= schedule.day1.length + schedule.day2.length + schedule.day3.length) {
+        alert("Trip complete!");
+        return;
+    }
+
+    let currentLocation = null;
+
+    // Determine which day and location to use based on currentIndex
+    if (currentIndex < schedule.day1.length) {
+        currentLocation = schedule.day1[currentIndex];
+    } else if (currentIndex < schedule.day1.length + schedule.day2.length) {
+        currentLocation = schedule.day2[currentIndex - schedule.day1.length];
+    } else if (currentIndex < schedule.day1.length + schedule.day2.length + schedule.day3.length) {
+        currentLocation = schedule.day3[currentIndex - schedule.day1.length - schedule.day2.length];
+    }
+
+    if (!currentLocation) {
+        console.error("Invalid currentLocation at index:", currentIndex);
+        return; // Exit if currentLocation is not valid
+    }
+
+    if (currentLocation.status === "False") {
+        showPopup(
+            `Do you want to navigate to ${currentLocation.location}?`,
+            () => {
+                navigateToDestination(currentLocation.latitude, currentLocation.longitude);
+            },
+            () => {
+                alert("Navigation canceled.");
             }
+        );
+    } else {
+        currentIndex++;
+        proceedToNextDestination();
+    }
+};
 
-            const { name, latitude, longitude } = schedule[currentIndex];
-            showPopup(
-                `Do you want to navigate to ${name}?`,
-                () => {
-                    navigateToDestination(latitude, longitude);
-                },
-                () => {
-                    alert("Navigation canceled.");
-                }
-            );
-        };
 
-        // Navigate to the destination
+        // Navigate to the selected destination
         const navigateToDestination = (lat, lng) => {
-            if (!userLocation) {
-                alert("User location is not available.");
-                return;
-            }
-
             if (routingControl) {
-                map.removeControl(routingControl);
+                routingControl.removeFrom(map);
             }
-
             routingControl = L.Routing.control({
                 waypoints: [userLocation, L.latLng(lat, lng)],
                 routeWhileDragging: true,
             }).addTo(map);
 
+            schedule[currentIndex].status = "True";  // Mark this location as visited
             currentIndex++;
-        };
-
-        // Simulate user arrival
-        const simulateArrival = () => {
-            if (currentIndex < schedule.length) {
-                const destination = schedule[currentIndex];
-                userLocation = L.latLng(destination.latitude, destination.longitude);
-                userMarker.setLatLng(userLocation).addTo(map);
-                map.setView(userLocation, 15);
-                proceedToNextDestination();
-            }
-        };
-
-        // Attach click event to test button
-        document.getElementById("test-button").addEventListener("click", simulateArrival);
-
-        // Start the navigation
-        locateUser(() => {
             proceedToNextDestination();
+        };
+
+        // Button to simulate arrival
+        document.getElementById("test-button").addEventListener("click", function () {
+            locateUser(() => {});
         });
+
+        locateUser(() => {});  // Start geolocation when page loads
     </script>
 </body>
 </html>

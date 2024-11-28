@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trip Setup</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1c1c2e, #373b54, #928dab);
+            color: white;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: rgba(28, 28, 46, 0.9);
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.75rem;
+        }
+
+        main {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+
+        .error-message {
+            background-color: #f44336;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+        }
+
+        .json-container {
+            background: #23233a;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            color: #f0f0f0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .json-container code {
+            color: #76c7c0;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        footer {
+            background: rgba(28, 28, 46, 0.9);
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        footer a {
+            color: #1D4ED8;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Trip Setup</h1>
+    </header>
+
+    <main>
+        {% if trips %}
+        <div class="json-container">
+            <h2>Trip Details (JSON Format)</h2>
+            <p>{{ trips.trip_json}}</p>
+        </div>
+        {% else %}
+        <div class="error-message">
+            <p>Error: No trip data available.</p>
+        </div>
+        {% endif %}
+    </main>
+
+    <footer>
+        <p>Go back to <a href="{% url 'dashboard_page' %}">Dashboard</a></p>
+    </footer>
+</body>
+</html>

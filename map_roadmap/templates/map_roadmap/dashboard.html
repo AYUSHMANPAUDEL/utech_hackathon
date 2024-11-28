@@ -1,261 +1,281 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trips</title>
     <style>
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
+        body {
+            font-family: Arial, sans-serif;
             background: linear-gradient(135deg, #1c1c2e, #373b54, #928dab);
-            box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.1);
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            padding: 10px 0;
-        }
-
-        .bottom-nav div {
+            color: white;
+            margin: 0;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
+            position: relative;
+        }
+
+        header {
+            background: rgba(28, 28, 46, 0.9);
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.75rem;
+        }
+
+        main {
+            flex: 1;
+            padding: 1.5rem;
+            margin-bottom: 80px; /* For bottom bar spacing */
+        }
+
+        .welcome-message {
+            text-align: center;
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 1rem;
+        }
+
+        #trip-details h2 {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        #trip-details ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        #trip-details ul li {
+            background: rgba(255, 255, 255, 0.1);
+            margin: 0.5rem 0;
+            padding: 0.8rem;
+            border-radius: 8px;
+            transition: background 0.3s ease;
+        }
+
+        #trip-details ul li:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        #trip-details ul li a {
+            text-decoration: none;
+            color: #1D4ED8;
+            font-weight: bold;
+        }
+
+        #trip-details p {
+            text-align: center;
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .floating-button {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: #1D4ED8;
+            border-radius: 50%;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: flex;
             align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            cursor: pointer;
+            z-index: 1000;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .floating-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1100;
+        }
+
+        .modal-content {
+            background: white;
+            color: black;
+            padding: 1.5rem;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+            text-align: center;
+            color: #1D4ED8;
+        }
+
+        .modal-content label {
+            display: block;
+            margin: 1rem 0 0.5rem;
+            font-weight: bold;
+        }
+
+        .modal-content input,
+        .modal-content button {
+            width: 100%;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .modal-content button {
+            background: #1D4ED8;
+            color: white;
+            font-weight: bold;
             cursor: pointer;
         }
 
-        .bottom-nav div:hover i, 
-        .bottom-nav div:hover span {
-            color: #1D4ED8; /* Tailwind's blue-600 */
+        .modal-content button:hover {
+            background: #165BBF;
         }
 
-        .bottom-nav i {
-            font-size: 2rem;
-            color: white;
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            background: linear-gradient(135deg, #23233A, #383857);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
         }
 
-        .bottom-nav span {
-            font-size: 0.75rem;
-            color: white;
+        .bottom-bar a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.9rem;
+            transition: color 0.3s ease;
         }
-         
 
-        .bottom-nav div span {
-            margin-top: 5px;
+        .bottom-bar a:hover {
+            color: #1D4ED8;
         }
 
+        .bottom-bar a.active {
+            color: #1D4ED8;
+        }
+
+        .bottom-bar a .icon {
+            font-size: 1.5rem;
+        }
     </style>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        // Function to toggle the popup/modal
-        function toggleModal() {
-            const modal = document.getElementById('modal');
-            modal.classList.toggle('hidden');
-        }
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 
-        // Function to auto-fill latitude and longitude using geolocation
-        function getLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(function (position) {
-                    const latitude = position.coords.latitude;
-                    const longitude = position.coords.longitude;
-                    document.getElementById("latitude").value = latitude;
-                    document.getElementById("longitude").value = longitude;
-                    document.getElementById("coordinates").value = `Lat: ${latitude}, Long: ${longitude}`;
-                }, function () {
-                    alert("Unable to fetch geolocation. Please enable location services in your browser.");
-                });
-            } else {
-                alert("Geolocation is not supported by your browser.");
-            }
-        }
-
-        // Call the function when the page loads
-        window.onload = getLocation;
-    </script>
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col">
-
-    <!-- Header -->
-    <header class="bg-blue-600 text-white py-4 shadow-md">
-        <h1 class="text-center text-2xl font-bold">Tourism Dashboard</h1>
+<body>
+    <header>
+        <h1>Trips</h1>
     </header>
 
-    <!-- Main Content -->
-    <div class="flex flex-1">
-        <!-- Sidebar Navigation -->
-        <nav class="bg-white w-20 shadow-lg flex flex-col items-center py-6 space-y-6">
-            <!-- Home Icon -->
-            <button
-                onclick="showPage('home')"
-                class="text-blue-600 hover:text-blue-800 focus:text-blue-800 transition duration-200">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M3 9l9-7 9 7-2 11H5L3 9z" />
-                </svg>
-            </button>
-            <!-- Transaction History Icon -->
-            <button
-                onclick="showPage('transactions')"
-                class="text-gray-600 hover:text-blue-800 focus:text-blue-800 transition duration-200">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M3 3h18v18H3z" />
-                </svg>
-            </button>
-            <!-- Map Icon -->
-            <button
-                onclick="showPage('map')"
-                class="text-gray-600 hover:text-blue-800 focus:text-blue-800 transition duration-200">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M10 3L3 9l7 6 7-6-7-6z" />
-                </svg>
-            </button>
-            <!-- Settings Icon -->
-            <button
-                onclick="showPage('settings')"
-                class="text-gray-600 hover:text-blue-800 focus:text-blue-800 transition duration-200">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2L3 7v10l9 5 9-5V7z" />
-                </svg>
-            </button>
-        </nav>
+    <main>
+        <p class="welcome-message">Here are your trips. Plan your next adventure!</p>
+        
+        <!-- Trip Details Section -->
+        <div id="trip-details">
+            {% if trips %}
+                <h2>Upcoming Trips</h2>
+                <ul>
+                    {% for trip in trips %}
+                        <li>
+                            <a href="{% url "trip_page" trip.id%}">Trip ID: {{ trip.id }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No trips created yet.</p>
+            {% endif %}
+        </div>
+    </main>
 
-        <!-- Main Dashboard Content -->
-        <main class="flex-1 p-6">
-            <!-- Home Page -->
-            <div id="home" class="page">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl font-bold">Your Trips</h2>
-                    <button onclick="toggleModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg shadow">+</button>
-                </div>
-                <div class="space-y-4">
-                    <div class="bg-white p-4 rounded-lg shadow cursor-pointer">
-                        <h3 class="font-bold text-gray-700">Trip to Kathmandu</h3>
-                        <p class="text-sm text-gray-600">3 days</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Transaction History Page -->
-            <div id="transactions" class="page hidden">
-                <h2 class="text-xl font-bold">Transaction History</h2>
-                <p>No transactions yet.</p>
-            </div>
-
-            <!-- Map Page -->
-            <div id="map" class="page hidden">
-                <h2 class="text-xl font-bold">Map</h2>
-                <p>Map integration coming soon!</p>
-            </div>
-
-            <!-- Settings Page -->
-            <div id="settings" class="page hidden">
-                <h2 class="text-xl font-bold">Settings</h2>
-                <p>Customize your preferences here.</p>
-            </div>
-        </main>
+    <!-- Floating "+" Button -->
+    <div class="floating-button" id="add-trip-btn">
+        <i class="fas fa-plus"></i>
     </div>
 
-    <!-- Bottom Navigation -->
-    <div class="bottom-nav">
-        <div onclick="showPage('home')">
-            <i class="fas fa-home"></i>
-            <span>Home</span>
-        </div>
-        <div onclick="showPage('transactions')">
-            <i class="fas fa-history"></i>
-            <span>History</span>
-        </div>
-        <div onclick="showPage('map')">
-            <i class="fas fa-map"></i>
-            <span>Map</span>
-        </div>
-        <div onclick="showPage('settings')">
-            <i class="fas fa-cogs"></i>
-            <span>Settings</span>
-        </div>
-    </div>
-
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-
-
-    <!-- Popup Modal for New Trip -->
-    <div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-        <div class="bg-white w-96 p-6 rounded-lg shadow-lg relative">
-            <!-- Close Button -->
-            <button
-                onclick="toggleModal()"
-                class="absolute top-2 right-2 bg-gray-300 text-gray-800 w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-400 focus:outline-none">
-                &times;
-            </button>
-            <h2 class="text-lg font-bold text-gray-800 mb-4">Add a New Trip</h2>
-            <form action="/explore" method="POST" class="space-y-4">
+    <!-- Modal for Adding Trip -->
+    <div class="modal" id="trip-modal">
+        <div class="modal-content">
+            <h2>Add a New Trip</h2>
+            <form action="" method="post">
                 {% csrf_token %}
+                <label for="destination">Destination</label>
+                <input type="text" id="destination" name="destination" required>
 
-                <!-- Location Dropdown -->
-                <div>
-                    <label for="location" class="block text-sm font-medium text-gray-700">Choose a Location</label>
-                    <select id="location" name="location" class="mt-1 block w-full px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" required>
-                        <option value="" disabled selected>-- Select a Location --</option>
-                        <option value="Kathmandu">Kathmandu</option>
-                        <option value="Pokhara">Pokhara</option>
-                        <option value="Lumbini">Lumbini</option>
-                        <option value="Chitwan">Chitwan</option>
-                        <option value="Everest Base Camp">Everest Base Camp</option>
-                    </select>
-                </div>
+                <label for="duration">Duration (days)</label>
+                <input type="number" id="duration" name="duration" required>
 
-                <!-- Number of Days Input -->
-                <div>
-                    <label for="days" class="block text-sm font-medium text-gray-700">Number of Days</label>
-                    <input
-                        type="number"
-                        id="days"
-                        name="days"
-                        class="mt-1 block w-full px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                        placeholder="Enter the number of days"
-                        min="1"
-                        required
-                    />
-                </div>
+                <label for="start_date">Start Date</label>
+                <input type="date" id="start_date" name="start_date" required>
 
-                <!-- Coordinates (Read-Only) -->
-                <div>
-                    <label for="coordinates" class="block text-sm font-medium text-gray-700">Coordinates</label>
-                    <input
-                        type="text"
-                        id="coordinates"
-                        class="mt-1 block w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg shadow-sm sm:text-sm"
-                        readonly
-                    />
-                </div>
-
-                <!-- Latitude (Hidden) -->
-                <input type="hidden" id="latitude" name="latitude" />
-
-                <!-- Longitude (Hidden) -->
-                <input type="hidden" id="longitude" name="longitude" />
-
-                <!-- Submit Button -->
-                <div>
-                    <button
-                        type="submit"
-                        class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-150"
-                    >
-                        Plan My Trip
-                    </button>
-                </div>
+                <button type="submit">Add Trip</button>
             </form>
         </div>
     </div>
 
+    <!-- Bottom Navigation Bar -->
+    <div class="bottom-bar">
+        <a href="#" class="active">
+            <i class="fas fa-home icon"></i>
+            <span>Home</span>
+        </a>
+        <a href="#">
+            <i class="fas fa-route icon"></i>
+            <span>Trips</span>
+        </a>
+        <a href="#">
+            <i class="fas fa-cog icon"></i>
+            <span>Settings</span>
+        </a>
+        <a href="#">
+            <i class="fas fa-user icon"></i>
+            <span>Profile</span>
+        </a>
+    </div>
+
     <script>
-        // Function to show a specific page
-        function showPage(pageId) {
-            const pages = document.querySelectorAll('.page');
-            pages.forEach((page) => page.classList.add('hidden'));
-            document.getElementById(pageId).classList.remove('hidden');
-        }
+        const addTripBtn = document.getElementById("add-trip-btn");
+        const tripModal = document.getElementById("trip-modal");
+
+        addTripBtn.addEventListener("click", () => {
+            tripModal.style.display = "flex";
+        });
+
+        tripModal.addEventListener("click", (e) => {
+            if (e.target === tripModal) {
+                tripModal.style.display = "none";
+            }
+        });
     </script>
 </body>
 </html>

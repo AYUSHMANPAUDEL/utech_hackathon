@@ -4,7 +4,6 @@ from django.contrib.auth import authenticate , login ,logout
 from django.contrib.auth.decorators import login_required
 
 # Create your views here.
-@login_required(login_url='login_page')
 def home_page(request):
     return render(request , "home/index.html")
 
@@ -30,7 +29,7 @@ def login_page(request):
       user=authenticate(request,username=username,password=pass1)
       if user is not None:
         login(request,user)
-        return redirect('home_page')
+        return redirect('dashboard_page')
       else:
          return HttpResponse("Username or Pass is incorrect")
          
