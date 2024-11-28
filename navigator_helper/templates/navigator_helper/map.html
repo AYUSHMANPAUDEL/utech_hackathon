@@ -3,244 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Navigation</title>
+    <title>Map Navigation</title>
     <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
-    <!-- Leaflet JavaScript -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/leaflet-routing-machine/dist/leaflet-routing-machine.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
     <style>
         #map {
-            height: 90vh;
             width: 100%;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            height: 100vh; /* Full screen height */
         }
-        #test-button {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            padding: 10px 20px;
-            background-color: #007bff;
+        .user-location-icon {
+            width: 30px;
+            height: 30px;
+            background-color: #ff4500;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            z-index: 1000;
-        }
-        #test-button:hover {
-            background-color: #0056b3;
-        }
-        #popup, #overlay {
-            display: none;
-        }
-        #popup {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            z-index: 1000;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-            opacity: 0.9;
-        }
-        #popup button {
-            margin: 5px;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        #yes { background-color: #28a745; color: white; }
-        #no { background-color: #dc3545; color: white; }
-        #overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
     <div id="map"></div>
-    <button id="test-button">Simulate Arrival</button>
-    <div id="overlay"></div>
-    <div id="popup">
-        <p id="popup-text"></p>
-        <button id="yes">Yes</button>
-        <button id="no">No</button>
-    </div>
 
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
     <script>
-        const schedule = {{ schedule|safe }};  // Your schedule data
-        let currentIndex = 0;
-        let userLocation = null;
-        let routingControl = null;
-        const NEARBY_RADIUS = 50; // Distance in meters to trigger next destination popup
+        // Initialize the map and set default view to the destination location
+        const latitude = {{ latitude }};
+        const longitude = {{ longitude }};
+        const map = L.map('map').setView([latitude, longitude], 13);
 
-        // Custom icon for user's location
-        const userIcon = L.icon({
-            iconUrl: "https://cdn-icons-png.flaticon.com/512/1946/1946429.png", // Profile-like or Uber-style icon
-            iconSize: [30, 30], // Size of the icon
-            iconAnchor: [15, 15], // Anchor point
-        });
-
-        // Initialize the map
-        const map = L.map("map").setView([27.7, 85.3], 12);
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            attribution: "© OpenStreetMap contributors",
+        // Add the OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        const userMarker = L.marker([0, 0], { icon: userIcon }).addTo(map);
+        // Add a marker for the destination location
+        L.marker([latitude, longitude]).addTo(map)
+            .bindPopup('Destination')
+            .openPopup();
 
-        // Show popup
-        const showPopup = (text, yesCallback, noCallback) => {
-            const popup = document.getElementById("popup");
-            const overlay = document.getElementById("overlay");
-            document.getElementById("popup-text").textContent = text;
+        // Get the user's current location using the browser's geolocation API
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                const userLatitude = position.coords.latitude;
+                const userLongitude = position.coords.longitude;
 
-            popup.style.display = "block";
-            overlay.style.display = "block";
+                // Add a marker for the user's current location with a custom icon
+                const userIcon = L.divIcon({
+                    className: 'user-location-icon',
+                    html: 'U',
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 15]
+                });
 
-            // Disable map interaction when popup is shown
-            map.dragging.disable();
-            map.touchZoom.disable();
-            map.doubleClickZoom.disable();
-            map.scrollWheelZoom.disable();
+                L.marker([userLatitude, userLongitude], { icon: userIcon }).addTo(map)
+                    .bindPopup('You are here')
+                    .openPopup();
 
-            document.getElementById("yes").onclick = () => {
-                popup.style.display = "none";
-                overlay.style.display = "none";
-                map.dragging.enable();
-                map.touchZoom.enable();
-                map.doubleClickZoom.enable();
-                map.scrollWheelZoom.enable();
-                yesCallback();
-            };
-
-            document.getElementById("no").onclick = () => {
-                popup.style.display = "none";
-                overlay.style.display = "none";
-                map.dragging.enable();
-                map.touchZoom.enable();
-                map.doubleClickZoom.enable();
-                map.scrollWheelZoom.enable();
-                noCallback();
-            };
-        };
-
-        // Get user's current location
-        const locateUser = (callback) => {
-            if (navigator.geolocation) {
-                navigator.geolocation.watchPosition(
-                    (position) => {
-                        userLocation = L.latLng(
-                            position.coords.latitude,
-                            position.coords.longitude
-                        );
-
-                        // Update map view and marker
-                        if (!map.hasLayer(userMarker)) {
-                            map.setView(userLocation, 15);
-                        }
-                        userMarker.setLatLng(userLocation).addTo(map);
-
-                        // Trigger first popup if it's not already handled
-                        if (currentIndex === 0 && userLocation) {
-                            proceedToNextDestination();
-                        }
-
-                        // Check proximity to destination
-                        if (currentIndex < schedule.length) {
-                            const destination = L.latLng(
-                                schedule[currentIndex].latitude,
-                                schedule[currentIndex].longitude
-                            );
-                            if (userLocation.distanceTo(destination) <= NEARBY_RADIUS) {
-                                proceedToNextDestination();
-                            }
-                        }
-                    },
-                    () => {
-                        alert("Unable to access your location.");
-                        callback();
-                    }
-                );
-            } else {
-                alert("Geolocation is not supported by your browser.");
-                callback();
-            }
-        };
-
-        // Proceed to next destination
-       // Proceed to next destination
-const proceedToNextDestination = () => {
-    if (currentIndex >= schedule.day1.length + schedule.day2.length + schedule.day3.length) {
-        alert("Trip complete!");
-        return;
-    }
-
-    let currentLocation = null;
-
-    // Determine which day and location to use based on currentIndex
-    if (currentIndex < schedule.day1.length) {
-        currentLocation = schedule.day1[currentIndex];
-    } else if (currentIndex < schedule.day1.length + schedule.day2.length) {
-        currentLocation = schedule.day2[currentIndex - schedule.day1.length];
-    } else if (currentIndex < schedule.day1.length + schedule.day2.length + schedule.day3.length) {
-        currentLocation = schedule.day3[currentIndex - schedule.day1.length - schedule.day2.length];
-    }
-
-    if (!currentLocation) {
-        console.error("Invalid currentLocation at index:", currentIndex);
-        return; // Exit if currentLocation is not valid
-    }
-
-    if (currentLocation.status === "False") {
-        showPopup(
-            `Do you want to navigate to ${currentLocation.location}?`,
-            () => {
-                navigateToDestination(currentLocation.latitude, currentLocation.longitude);
-            },
-            () => {
-                alert("Navigation canceled.");
-            }
-        );
-    } else {
-        currentIndex++;
-        proceedToNextDestination();
-    }
-};
-
-
-        // Navigate to the selected destination
-        const navigateToDestination = (lat, lng) => {
-            if (routingControl) {
-                routingControl.removeFrom(map);
-            }
-            routingControl = L.Routing.control({
-                waypoints: [userLocation, L.latLng(lat, lng)],
-                routeWhileDragging: true,
-            }).addTo(map);
-
-            schedule[currentIndex].status = "True";  // Mark this location as visited
-            currentIndex++;
-            proceedToNextDestination();
-        };
-
-        // Button to simulate arrival
-        document.getElementById("test-button").addEventListener("click", function () {
-            locateUser(() => {});
-        });
-
-        locateUser(() => {});  // Start geolocation when page loads
+                // Add routing between the user's location and the destination
+                L.Routing.control({
+                    waypoints: [
+                        L.latLng(userLatitude, userLongitude),
+                        L.latLng(latitude, longitude)
+                    ],
+                    routeWhileDragging: true
+                }).addTo(map);
+            }, function() {
+                alert('Geolocation failed. Unable to retrieve location.');
+            });
+        } else {
+            alert('Geolocation is not supported by this browser.');
+        }
     </script>
 </body>
 </html>
