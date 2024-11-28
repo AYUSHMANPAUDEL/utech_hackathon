@@ -208,7 +208,7 @@
                 <ul>
                     {% for trip in trips %}
                         <li>
-                            <a href="#">Trip ID: {{ trip.id }} - Destination: {{ trip.destination }}</a>
+                            <a href="{% url "trip_page" trip.id%}">Trip ID: {{ trip.id }}</a>
                         </li>
                     {% endfor %}
                 </ul>
