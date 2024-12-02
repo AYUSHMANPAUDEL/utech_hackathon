@@ -7,6 +7,7 @@ def navigate_map(request):
 
 def trip_plan(request,id):
     trip = get_object_or_404(Trips,id=id)
+    print(trip.trip_json)
     if trip and trip.username == request.user:
         return render(request,"navigator_helper/trip_setup.html",{"trip":trip})
     return render(request,"navigator_helper/trip_setup.html",{"error":"Error Occured"})

@@ -172,28 +172,29 @@
 
     <main>
         {% if trip %}
-            {% for day, events in trip.trip_json.items %}
-                <div class="day-container">
-                    <div class="day-header">
-                        {{ day | title }}
+        {% for day, events in trip.trip_json.items %}
+        <div class="day-container">
+            <div class="day-header">
+                {{ day | title }}
+            </div>
+            {% for event in events %}
+                <div class="trip-card">
+                    <div class="trip-details">
+                        <p><strong>Location:</strong> {{ event.location }}</p>
+                        <p><strong>Latitude:</strong> {{ event.latitude }}</p>
+                        <p><strong>Longitude:</strong> {{ event.longitude }}</p>
+                        <p><strong>Status:</strong> {{ event.status|yesno:"Pending,Completed" }}</p>
                     </div>
-                    {% for event in events %}
-                        <div class="trip-card">
-                            <div class="trip-details">
-                                <p><strong>Location:</strong> {{ event.location }}</p>
-                                <p><strong>Latitude:</strong> {{ event.latitude }}</p>
-                                <p><strong>Longitude:</strong> {{ event.longitude }}</p>
-                                <p><strong>Status:</strong> {{ event.status|yesno:"Pending,Completed" }}</p>
-                            </div>
-                            <div class="trip-actions">
-                                <button class="action-button go-now-button">Go Now</button>
-                                <button class="action-button edit-button">Edit</button>
-                                <button class="action-button delete-button">Delete</button>
-                            </div>
-                        </div>
-                    {% endfor %}
+                    <div class="trip-actions">
+                        <button class="action-button go-now-button">Go Now</button>
+                        <button class="action-button edit-button">Edit</button>
+                        <button class="action-button delete-button">Delete</button>
+                    </div>
                 </div>
             {% endfor %}
+        </div>
+    {% endfor %}
+    
         {% else %}
             <div class="error-message">
                 <p>Error: No trip data available.</p>
