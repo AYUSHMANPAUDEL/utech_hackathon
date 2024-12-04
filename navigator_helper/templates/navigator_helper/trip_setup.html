@@ -163,6 +163,16 @@
             z-index: 999;
             display: none;
         }
+        .close-button {
+            background: #ff5722;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+        
     </style>
 </head>
 <body>
@@ -201,6 +211,18 @@
             </div>
         {% endif %}
     </main>
+    <div class="popup-overlay" id="hotelPopupOverlay"></div>
+    <div class="popup" id="hotelPopup">
+        <h2>Nearby Hotels</h2>
+        <div id="hotelDetails"></div>
+        <div>
+            <button onclick="checkAnotherHotel()">Check Another Hotel</button>
+            <button onclick="bookHotel()">Book Hotel</button>
+        </div>
+        <button class="close-button" onclick="closeHotelPopup()">X</button>
+    </div>
+
+
 
     <footer>
         <p>Go back to <a href="{% url 'dashboard_page' %}">Dashboard</a></p>
@@ -293,6 +315,78 @@ function goByYourself(event) {
 // Ensure the button triggers goByYourself
 document.getElementById('goByYourselfButton').addEventListener('click', goByYourself);
 
+    </script>
+    <script>
+        let hotels = [
+        {% for hotel in hotel_details %}
+        {
+            name: "{{ hotel.name }}",
+            rating: "{{ hotel.rating }}",
+            distance: "{{ hotel.distance }}",
+            hotel_image1: "{{ hotel.hotel_image1 }}",
+            hotel_image2: "{{ hotel.hotel_image2 }}",
+            hotel_image3: "{{ hotel.hotel_image3 }}"
+        },
+        {% endfor %}
+    ];
+
+    let hotelStatus = "{{ hotel_status|yesno:'false,true' }}";  // Ensure quotes around the string.
+    // Assuming hotel_status is passed as a boolean in template.
+
+    // Function to show hotel details
+    function showHotelDetails(index) {
+        const hotel = hotels[index];
+        const hotelDetailsDiv = document.getElementById("hotelDetails");
+    
+        // Close other popups
+        popup.style.display = 'none';
+        popupOverlay.style.display = 'none';
+        console.log(hotel.hotel_image2.url)
+        hotelDetailsDiv.innerHTML = `
+            <p><strong>Name:</strong> ${hotel.name}</p>
+            <p><strong>Rating:</strong> ${hotel.rating}</p>
+            <p><strong>Distance:</strong> ${hotel.distance} km</p>
+            <p><strong>Images:</strong></p>
+            <img src="${hotel.hotel_image1}" alt="${hotel.name}" width="100px" height="100px">
+            <img src="${hotel.hotel_image2}" alt="${hotel.name}" width="100px" height="100px">
+            <img src="${hotel.hotel_image3}" alt="${hotel.name}" width="100px" height="100px">
+
+        `;
+    }
+    function closeHotelPopup() {
+        document.getElementById("hotelPopupOverlay").style.display = "none";
+        document.getElementById("hotelPopup").style.display = "none";
+    }
+    
+    // Open popup if hotel status is false and there are no nearby hotels
+    window.onload = function() {
+        // Always show the hotel popup when the page loads
+        document.getElementById("hotelPopupOverlay").style.display = "block";
+        document.getElementById("hotelPopup").style.display = "flex";
+        
+        // Optionally, show a message if no hotels are available
+        if (hotels.length === 0) {
+            document.getElementById("hotelDetails").innerHTML = "<p>Sorry, we couldn't find any hotel nearby your trip.</p>";
+        } else {
+            // Show details of the first hotel if available
+            showHotelDetails(0);
+        }
+    };
+    // Show another hotel (if available)
+    function checkAnotherHotel() {
+        if (hotels.length > 0) {
+            let currentHotelIndex = Math.floor(Math.random() * hotels.length);
+            console.log(`Current hotel index: ${currentHotelIndex}`);
+            showHotelDetails(currentHotelIndex);
+        } else {
+            alert("No more hotels to show.");
+        }
+    }
+
+    // Book hotel functionality
+    function bookHotel() {
+        alert('Booking functionality will be implemented soon!');
+    }
     </script>
 </body>
 </html>
