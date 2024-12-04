@@ -124,3 +124,5 @@ def conver_to_real_json(trip2_json):
     return trip1_json
 
     
+def translator(request):
+    return render(request,"map_roadmap/translator.html")

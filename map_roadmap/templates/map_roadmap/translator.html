@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Translator</title>
+    <style>
+        body {
+            font-family: "Poppins", Arial, sans-serif;
+            background: linear-gradient(135deg, #1c1c2e, #373b54, #928dab);
+            color: white;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        header {
+            background: rgba(28, 28, 46, 0.9);
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #FFD700; /* Gold accent for modern touch */
+        }
+
+ 
+
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(-10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: #FFFFFF;
+            color: #000;
+            padding: 2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+            transform: scale(0.9);
+            animation: modalOpen 0.3s ease forwards;
+        }
+
+        @keyframes modalOpen {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            background: linear-gradient(135deg, #23233A, #383857);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .bottom-bar a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.9rem;
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+
+        .bottom-bar a:hover {
+            color: #FFD700;
+            transform: scale(1.1);
+        }
+
+        .bottom-bar a.active {
+            color: #FFD700;
+        }
+
+        .bottom-bar a .icon {
+            font-size: 1.5rem;
+        }
+       
+        .form-submit:hover {
+            background: #1D4ED8;
+        }
+        .modal {
+            position: fixed;
+x-width: 600px;
+        }
+;
+    
+/* Day Header */
+.day-header {
+    font-size: 1.4em;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+
+header {
+    background: rgba(28, 28, 46, 0.9);
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #FFD700;
+}
+
+main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.translator-container {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    max-width: 600px;
+    width: 100%;
+    text-align: center;
+}
+
+.translator-container textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    resize: none;
+    font-family: inherit;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+}
+
+.translator-container select, 
+.translator-container button {
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    font-family: inherit;
+    font-size: 1rem;
+    margin: 5px;
+    cursor: pointer;
+}
+
+.translator-container button {
+    background: #FFD700;
+    color: #000;
+    font-weight: bold;
+}
+
+.translator-container button:hover {
+    background: #ffcc00;
+}
+
+.output {
+    margin-top: 1rem;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    text-align: left;
+}
+
+    </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <h1>Translator</h1>
+    </header>
+
+   
+        <main>
+            <div class="form-container">
+                <textarea id="input-text" class="input-text" rows="5" placeholder="Enter text to translate and search"></textarea>
+                <button class="translate-btn" onclick="translateAndSearch()">Translate and Search</button>
+            </div>
+    
+            <div id="results" class="result-container"></div>
+        </main>
+    
+
+
+
+
+
+    <div class="bottom-bar">
+        <a href="{% url "dashboard_page" %}" >
+            <i class="fas fa-home icon"></i>
+            <span>Home</span>
+        </a>
+        <a href="#">
+            <i class="fas fa-money-check-alt icon"></i>
+            <span>Money Exchange</span>
+        </a>
+        <a href="{% url "translator_page" %}" class="active">
+            <i class="fas fa-language icon"></i>
+            <span>Translator</span>
+        </a>
+        <a href="#">
+            <i class="fas fa-user icon"></i>
+            <span>Profile</span>
+        </a>
+    </div>
+    <script>
+        async function translateAndSearch() {
+            const query = document.getElementById("input-text").value;
+            const targetLanguage = 'es'; // Example target language (Spanish)
+
+            if (!query) {
+                alert("Please enter some text to translate.");
+                return;
+            }
+
+            // Translate the query
+            try {
+                const translatedQuery = await translateQuery(query, targetLanguage);
+
+                // Use the translated query to search GitHub
+                const repos = await searchGitHub(translatedQuery);
+                
+                displayResults(repos);
+            } catch (error) {
+                console.error("Error:", error);
+                alert("An error occurred. Please try again.");
+            }
+        }
+
+        async function translateQuery(query, targetLanguage) {
+            const res = await fetch("https://libretranslate.com/translate", {
+                method: "POST",
+                body: JSON.stringify({
+                    q: query,
+                    source: "auto",
+                    target: targetLanguage,
+                    format: "text"
+                }),
+                headers: { "Content-Type": "application/json" }
+            });
+
+            const data = await res.json();
+            if (data && data.translatedText) {
+                return data.translatedText;
+            } else {
+                throw new Error("Translation failed");
+            }
+        }
+
+        async function searchGitHub(query) {
+            const url = `https://api.github.com/search/repositories?q=${encodeURIComponent(query)}`;
+            const res = await fetch(url);
+            const data = await res.json();
+
+            if (data.items) {
+                return data.items;
+            } else {
+                throw new Error("GitHub search failed");
+            }
+        }
+
+        function displayResults(repos) {
+            const resultsDiv = document.getElementById("results");
+            resultsDiv.innerHTML = "";  // Clear previous results
+
+            if (repos.length === 0) {
+                resultsDiv.innerHTML = "<p>No repositories found.</p>";
+                return;
+            }
+
+            repos.forEach(repo => {
+                const repoLink = document.createElement("a");
+                repoLink.href = repo.html_url;
+                repoLink.classList.add("repo-link");
+                repoLink.textContent = repo.name;
+
+                const repoDesc = document.createElement("p");
+                repoDesc.textContent = repo.description || "No description available";
+
+                const repoContainer = document.createElement("div");
+                repoContainer.appendChild(repoLink);
+                repoContainer.appendChild(repoDesc);
+                resultsDiv.appendChild(repoContainer);
+            });
+        }
+    
+
+    </script>
+</body>
+</html>
