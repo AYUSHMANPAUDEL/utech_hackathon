@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Money Exchange Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        /* Custom styles for markers */
+        .custom-bank-icon {
+            width: 40px; /* Icon size */
+            height: 40px;
+            background-color: rgba(255, 255, 255, 0.7); /* White background with transparency */
+            border-radius: 50%; /* Rounded shape */
+            border: 2px solid rgba(0, 0, 0, 0.5); /* Thin border */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add some shadow for a pop effect */
+        }
+        .custom-bank-icon img {
+            width: 24px; /* Bank icon size inside the marker */
+            height: 24px;
+            opacity: 0.8; /* Semi-transparent bank icon */
+        }
+    </style>
+</head>
+<body>
+    <h1>Money Exchange Locations</h1>
+    <div id="map" style="height: 500px; width: 100%;"></div>
+
+    <script>
+        // Initialize the map
+        var map = L.map('map').setView([27.7172, 85.3240], 14); // Center on Kathmandu
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Define a custom icon using DivIcon
+        var bankIcon = L.divIcon({
+            className: 'custom-bank-icon',
+            html: `<img src="https://img.icons8.com/color/48/bank.png" alt="Bank">`, // Bank icon inside the div
+            iconSize: [40, 40], // Div size [width, height]
+            iconAnchor: [20, 40], // Center the icon at the point
+            popupAnchor: [0, -40] // Adjust popup position
+        });
+
+        // Add markers for money exchange locations
+        var locations = {{ locations|safe }}; // Dynamically passed data from Django
+        locations.forEach(function(loc) {
+            L.marker([loc.lat, loc.lng], { icon: bankIcon }).addTo(map)
+                .bindPopup(`<b>${loc.name}</b>`);
+        });
+    </script>
+</body>
+</html>

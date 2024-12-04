@@ -123,6 +123,15 @@ def conver_to_real_json(trip2_json):
 
     return trip1_json
 
+def map_view(request):
+
+    locations = [
+        {"name": "Money Exchange - Thamel", "lat": 27.7149, "lng": 85.3123},
+        {"name": "Money Exchange - Durbar Marg", "lat": 27.7120, "lng": 85.3165},
+        {"name": "Money Exchange - Lazimpat", "lat": 27.7264, "lng": 85.3206},
+    ]
+
+    return render(request, 'map_roadmap/money.html', {"locations": locations})
     
 def translator(request):
     return render(request,"map_roadmap/translator.html")
